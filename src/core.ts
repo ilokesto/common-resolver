@@ -1,8 +1,8 @@
-import { z } from "zod";
 import { isZodSchema, isYupSchema, isSuperstructSchema } from "./typeGuards"
-import { RecursivePartial, Resolver, ValidateSchema } from "./types";
+import { Resolver, ValidateSchema } from "./types";
+import { validate } from "superstruct";
+import { bracketIndexToDot, createErrorProxy, errorPathObjectify } from "./utils";
 
-// 수정된 함수
 export function getResolver<T>(validator: ValidateSchema<T>[keyof ValidateSchema<T>]): Resolver<T> {
   if (isZodSchema<T>(validator)) {
     return zodResolver(validator);
@@ -16,43 +16,15 @@ export function getResolver<T>(validator: ValidateSchema<T>[keyof ValidateSchema
 }
 
 export function zodResolver<T>(schema: ValidateSchema<T>["zod"]): Resolver<T> {
-  const formatZodErrorMessage = (obj: z.ZodFormattedError<T, string>) => {
-    const result: Record<string, any> = {};
-    const o = obj as Record<string, any>; // 타입 단언 추가
-
-    // 최상단 _errors → root
-    if (Array.isArray(o._errors)) {
-      result.root = o._errors.length > 0 ? o._errors[0] : undefined;
-    }
-
-    for (const key in o) {
-      if (key === "_errors" || key === "_error") continue;
-      const sub = o[key];
-      if (typeof sub === "object" && sub !== null) {
-        if (
-          Array.isArray(sub._errors) &&
-          sub._errors.length > 0 &&
-          Object.keys(sub).length === 1
-        ) {
-          result[key] = sub._errors[0];
-        } else if (
-          Array.isArray(sub._errors) &&
-          sub._errors.length === 0 &&
-          Object.keys(sub).length === 1
-        ) {
-          result[key] = undefined;
-        } else {
-          const nested = formatZodErrorMessage(sub);
-          if (Object.keys(nested).length > 0) result[key] = nested;
-        }
-      }
-    }
-
-    return result;
-  };
+  const formatter = (obj: Array<{message: string, path: Array<string | number>}>) => {
+    return obj.reduce((acc, { message, path }) => {
+      acc[path.join('.') || "root"] = message;
+      return acc;
+    }, {} as Record<string, string>);
+  }
 
   return {
-    validate: (state, name) => {
+    validate: (state: T) => {
       const result = schema.safeParse(state);
       if (result.success) {
         return {
@@ -60,99 +32,25 @@ export function zodResolver<T>(schema: ValidateSchema<T>["zod"]): Resolver<T> {
           error: null,
         };
       } else {
-        const formatted = result.error.format();
-
         return {
           valid: false,
-          error: name ? formatZodErrorMessage(formatted)[name] : formatZodErrorMessage(formatted),
-        }
+          error: createErrorProxy(errorPathObjectify(formatter(result.error.issues))),
+        };
       }
     }
   }
 }
 
-// export function yupResolver<T>(schema: ValidateSchema<T>["yup"]): Resolver<T> {
-//   const formatYupErrorMessage = (e: import("yup").ValidationError) => {
-//     return (e as import("yup").ValidationError).inner.map((err) => ({[err.path || "root"]: err.message})).reduce((acc, cur) => {
-//             const entry = Object.entries(cur)[0];
-//             if (!entry) return acc;
-
-//             const [key, value] = entry
-//             // key가 'a.b.c'처럼 중첩된 경우 분리
-//             const keys = key.split(".");
-//             let temp = acc;
-//             keys.forEach((k, i) => {
-//               if (i === keys.length - 1) {
-//                 temp[k] = value;
-//               } else {
-//                 if (!temp[k] || typeof temp[k] !== "object") temp[k] = {};
-//                 temp = temp[k];
-//               }
-//             });
-
-//             return acc;
-//           }, {} as Record<string, any>) as RecursivePartial<T>
-//   }
-
-//   return {
-//     validate: (state, name) => {
-//       if (name) {
-//         try {
-//           schema.validateSyncAt(name, state, { abortEarly: false });
-//           return {
-//             valid: true,
-//             error: null,
-//           };
-//         } catch (e: any) {
-//           return {
-  //             valid: false,
-  //             error: e.errors[0],
-//           };
-//         }
-//       } else {
-//         try {
-//           schema.validateSync(state, { abortEarly: false });
-//           return {
-//             valid: true,
-//             error: null,
-//           };
-//         }
-//         catch (e: any) {
-//           return {
-//             valid: false,
-//             error: formatYupErrorMessage(e),
-//           };
-//         }
-//       }
-//     }
-//   }
-// }
-
-export function yupResolver<T>(schema: ValidateSchema<T>["yup"]) {
+export function yupResolver<T>(schema: ValidateSchema<T>["yup"]): Resolver<T> {
   const formatter = (e: Array<{ errors: Array<string>, path: string }>) => {
     return e.reduce((acc, err) => {
-      acc[err.path || "root"] = err.errors[0];
+      acc[bracketIndexToDot(err.path) || "root"] = err.errors[0];
       return acc;
-    }, {} as Record<string, any>);
+    }, {} as Record<string, string>);
   }
 
   return {
-    validate: (state: T, ...name: Array<string | number>) => {
-      if (name.length > 0) {
-        const path = name.join(".");
-        try {
-          schema.validateSyncAt(path, state, { abortEarly: false });
-          return {
-            valid: true,
-            error: null,
-          };
-        } catch (e: any) {
-          return {
-            valid: false,
-            error: e.errors[0],
-          };
-        }
-      } else {
+    validate: (state: T) => {
         try {
           schema.validateSync(state, { abortEarly: false });
           return {
@@ -162,74 +60,36 @@ export function yupResolver<T>(schema: ValidateSchema<T>["yup"]) {
         } catch (e: any) {
           return {
             valid: false,
-            error: formatter(e.inner)
+            error: createErrorProxy(errorPathObjectify(formatter(e.inner)))
           }
         }
       }
     }
-  }
 }
 
-
-
-
-// superstruct 스키마 래퍼
 export function superstructResolver<T>(schema: ValidateSchema<T>["superstruct"]): Resolver<T> {
-  const { validate } = require("superstruct");
-
-  function formatSuperstructError(error: any): Record<string, any> {
-    const result: Record<string, any> = {};
-    if (!error) return result;
-
-    for (const failure of error.failures()) {
-      const path = failure.path.length > 0 ? failure.path : ["root"];
-      let temp = result;
-      path.forEach((key: string, idx: number) => {
-        if (idx === path.length - 1) {
-          if (temp[key] === undefined) temp[key] = failure.message;
-        } else {
-          if (!temp[key] || typeof temp[key] !== "object") temp[key] = {};
-          temp = temp[key];
-        }
-      });
-    }
-    return result;
+  const formatter = (obj: Array<{message: string, path: Array<string | number>}>) => {
+    return obj.reduce((acc, { message, path }) => {
+      acc[path.join('.') || "root"] = message;
+      return acc;
+    }, {} as Record<string, string>);
   }
 
   return {
-    validate: (state: T, name?: string) => {
+    validate: (state: T) => {
       const [error] = validate(state, schema);
+
       if (!error) {
         return {
           valid: true,
           error: null,
         };
-      }
-      const formatted = formatSuperstructError(error);
-
-      if (name) {
-        // name이 'a.b.c' 형태일 수 있으므로 중첩 접근
-        const keys = name.split(".");
-        let temp: any = formatted;
-        
-        for (const key of keys) {
-          if (temp && typeof temp === "object") temp = temp[key];
-          else return {
-            valid: false,
-            error: {} as RecursivePartial<T>
-          };
-        }
-
+      } else {
         return {
           valid: false,
-          error: temp as RecursivePartial<T>
-        };
+          error: createErrorProxy(errorPathObjectify(formatter(error.failures()))),
+        }
       }
-
-      return {
-        valid: false,
-        error: formatted as RecursivePartial<T>,
-      };
     }
   }
 }

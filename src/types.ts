@@ -12,7 +12,7 @@ export type RecursivePartial<T> = {
   [P in keyof T]?: T[P] extends object
     ? RecursivePartial<T[P]>
     : T[P];
-} & { "root"?: string };
+};
 
 export type Resolver<T> = {
   validate: (state: T, name?: string) => {
@@ -20,6 +20,6 @@ export type Resolver<T> = {
     error: null;
   } | {
     valid: false;
-    error: RecursivePartial<T>;
+    error: RecursivePartial<T> & { "root"?: string };
   };
 }
