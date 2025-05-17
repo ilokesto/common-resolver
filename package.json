@@ -20,8 +20,8 @@
       "types": "./dist/exports/yupResolver.d.ts"
     },
     "./superstruct": {
-      "import": "./dist/exports/superstructResolver.js",
-      "types": "./dist/exports/superstructResolver.d.ts"
+      "import": "./dist/exports/ssResolver.js",
+      "types": "./dist/exports/ssResolver.d.ts"
     },
     "./getResolver": {
       "import": "./dist/exports/getResolver.js",
