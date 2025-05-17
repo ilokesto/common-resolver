@@ -11,14 +11,27 @@
   "types": "dist/index.d.ts",
   "module": "dist/index.js",
   "exports": {
-    "./typeGuards": {
-      "import": "./dist/typeGuards.js",
-      "types": "./dist/typeGuards.d.ts"
+    "./zod": {
+      "import": "./dist/exports/zodResolver.js",
+      "types": "./dist/exports/zodResolver.d.ts"
+    },
+    "./yup": {
+      "import": "./dist/exports/yupResolver.js",
+      "types": "./dist/exports/yupResolver.d.ts"
+    },
+    "./superstruct": {
+      "import": "./dist/exports/superstructResolver.js",
+      "types": "./dist/exports/superstructResolver.d.ts"
+    },
+    "./getResolver": {
+      "import": "./dist/exports/getResolver.js",
+      "types": "./dist/exports/getResolver.d.ts"
     },
     "./types": {
-      "import": "./dist/types.js",
-      "types": "./dist/types.d.ts"
+      "import": "./dist/exports/types.js",
+      "types": "./dist/exports/types.d.ts"
     }
+    
   },
   "sideEffects": false,
   "files": [
