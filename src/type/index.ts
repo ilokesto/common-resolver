@@ -11,7 +11,7 @@ export type ValidateSchema<T> = {
 export type RecursivePartial<T> = {
   [P in keyof T]?: T[P] extends object
     ? RecursivePartial<T[P]>
-    : T[P];
+    : string;
 };
 
 export type Resolver<T> = {

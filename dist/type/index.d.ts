@@ -7,7 +7,7 @@ export type ValidateSchema<T> = {
     superstruct: Struct<T, any>;
 };
 export type RecursivePartial<T> = {
-    [P in keyof T]?: T[P] extends object ? RecursivePartial<T[P]> : T[P];
+    [P in keyof T]?: T[P] extends object ? RecursivePartial<T[P]> : string;
 };
 export type Resolver<T> = {
     validate: (state: T, name?: string) => {
