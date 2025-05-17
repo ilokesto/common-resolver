@@ -11,10 +11,6 @@
   "types": "dist/index.d.ts",
   "module": "dist/index.js",
   "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    },
     "./typeGuards": {
       "import": "./dist/typeGuards.js",
       "types": "./dist/typeGuards.d.ts"
@@ -32,9 +28,9 @@
   "author": "Jeong Jinho <wpfekdml@me.com>",
   "license": "MIT",
   "peerDependencies": {
-    "zod": ">=3.0.0",
-    "yup": ">=1.0.0",
-    "superstruct": ">=2.0.0"
+    "zod": "^3.0.0",
+    "yup": "^1.0.0",
+    "superstruct": "^2.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
