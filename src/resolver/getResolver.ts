@@ -1,5 +1,4 @@
-import { isZodSchema, isYupSchema, isSuperstructSchema } from "../types";
-import { ValidateSchema, Resolver } from "../types";
+import { isZodSchema, isYupSchema, isSuperstructSchema, ValidateSchema, Resolver } from "../type";
 import { superstructResolver } from "./ssResolver";
 import { yupResolver } from "./yupResolver";
 import { zodResolver } from "./zodResolver";

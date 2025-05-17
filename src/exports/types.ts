@@ -1,1 +1,1 @@
-export { ValidateSchema, Resolver } from "../types"
+export { ValidateSchema, Resolver } from "../type"

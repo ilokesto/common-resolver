@@ -1,2 +1,2 @@
 export * from "../resolver/yupResolver";
-export { isYupSchema } from "../types";
+export { isYupSchema } from "../type";

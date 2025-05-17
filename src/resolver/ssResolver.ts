@@ -1,4 +1,4 @@
-import { Resolver, ValidateSchema } from "../types";
+import { Resolver, ValidateSchema } from "../type";
 import { createErrorProxy, errorPathObjectify } from "../utils";
 
 export function superstructResolver<T>(schema: ValidateSchema<T>["superstruct"]): Resolver<T> {

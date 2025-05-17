@@ -1,4 +1,4 @@
-import { Resolver, ValidateSchema } from "../types";
+import { Resolver, ValidateSchema } from "../type";
 import { createErrorProxy, errorPathObjectify } from "../utils";
 
 export function zodResolver<T>(schema: ValidateSchema<T>["zod"]): Resolver<T> {

@@ -1,2 +1,2 @@
 export * from "../resolver/zodResolver";
-export { isZodSchema } from "../types";
+export { isZodSchema } from "../type";

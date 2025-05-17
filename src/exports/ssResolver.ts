@@ -1,2 +1,2 @@
 export * from "../resolver/ssResolver"
-export { isSuperstructSchema } from "../types"
+export { isSuperstructSchema } from "../type"
