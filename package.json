@@ -1,6 +1,6 @@
 {
   "name": "common-resolver",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "scripts": {
     "build": "tsc"
   },
@@ -31,7 +31,6 @@
       "import": "./dist/exports/types.js",
       "types": "./dist/exports/types.d.ts"
     }
-    
   },
   "sideEffects": false,
   "files": [
