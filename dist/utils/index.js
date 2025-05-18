@@ -7,7 +7,8 @@ export function bracketIndexToDot(path) {
 }
 export function errorPathObjectify(errors) {
     const result = {};
-    for (const key in errors) {
+    const sortedKeys = Object.keys(errors).sort((a, b) => b.split('.').length - a.split('.').length);
+    for (const key of sortedKeys) {
         const value = errors[key];
         const path = key.split(".");
         let temp = result;
@@ -17,7 +18,12 @@ export function errorPathObjectify(errors) {
                     temp[segment] = value;
                 }
                 else {
-                    temp[segment] = { root: value };
+                    if (temp[segment] && typeof temp[segment] === "object") {
+                        temp[segment].root = value;
+                    }
+                    else {
+                        temp[segment] = { root: value };
+                    }
                 }
             }
             else {
