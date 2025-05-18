@@ -6,8 +6,11 @@ export function bracketIndexToDot(path: string): string {
 }
 export function errorPathObjectify(errors: Record<string, string>): Record<string, any> {
   const result: Record<string, any> = {};
+  
+  // 키를 길이에 따라 정렬 (긴 것부터 처리)
+  const sortedKeys = Object.keys(errors).sort((a, b) => b.split('.').length - a.split('.').length);
 
-  for (const key in errors) {
+  for (const key of sortedKeys) {
     const value = errors[key];
     const path = key.split(".");
     let temp = result;
@@ -18,7 +21,12 @@ export function errorPathObjectify(errors: Record<string, string>): Record<strin
         if (segment === "root") {
           temp[segment] = value;
         } else {
-          temp[segment] = { root: value };
+          // 이미 객체가 있고 중첩 구조라면 root 속성만 추가
+          if (temp[segment] && typeof temp[segment] === "object") {
+            temp[segment].root = value;
+          } else {
+            temp[segment] = { root: value };
+          }
         }
       } else {
         if (!temp[segment] || typeof temp[segment] !== "object") {
