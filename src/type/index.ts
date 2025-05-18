@@ -14,13 +14,15 @@ export type RecursivePartial<T> = {
     : string;
 };
 
+type CRES<T> = RecursivePartial<T> & { "root"?: string };
+
 export type Resolver<T> = {
   validate: (state: T, name?: string) => {
     valid: true;
     error: null;
   } | {
     valid: false;
-    error: RecursivePartial<T> & { "root"?: string };
+    error: CRES<T>;
   };
 }
 
