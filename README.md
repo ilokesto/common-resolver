@@ -34,14 +34,16 @@ export type Resolver<T> = {
     error: null;
   } | {
     valid: false;
-    error: RecursivePartial<T> & { "root"?: string };
+    error: CRES<T>;
   };
 }
 ```
 
-error 객체는 `RecursivePartial<T> & { "root"?: string }` 타입을 갖습니다. 이는 원본 데이터 구조를 그대로 반영하되 모든 속성이 선택적이고, 각 속성은 문자열 형태의 오류 메시지를 담고 있습니다. 중첩된 객체의 경우에도 같은 구조를 재귀적으로 유지하므로, 복잡한 데이터 구조에서도 정확하게 어떤 필드에서 오류가 발생했는지 쉽게 파악할 수 있습니다.
+error 객체는 CRES 타입을 갖습니다. 이는 원본 데이터 구조를 그대로 반영하되 모든 속성이 선택적이고, 각 속성은 문자열 형태의 오류 메시지를 담고 있습니다. 중첩된 객체의 경우에도 같은 구조를 재귀적으로 유지하므로, 복잡한 데이터 구조에서도 정확하게 어떤 필드에서 오류가 발생했는지 쉽게 파악할 수 있습니다.
 
 ```ts
+type CRES<T> = RecursivePartial<T> & { "root"?: string };
+
 export type RecursivePartial<T> = {
   [P in keyof T]?: T[P] extends object
     ? RecursivePartial<T[P]>
@@ -49,13 +51,94 @@ export type RecursivePartial<T> = {
 };
 ```
 
-다음은 Zod 스키마를 사용하는 간단한 예제입니다. 여기서는 문자열 타입의 스키마를 정의하고 최소 길이가 1 이상이어야 한다는 제약을 설정했습니다. 빈 문자열("")을 validate 메서드에 전달하면 길이 조건을 충족하지 못해 유효성 검사에 실패합니다. 이때 반환되는 error 객체에는 "root" 속성에 오류 메시지("zSchema는 필수입니다")가 포함됩니다. 이 예제는 단일 값에 대한 검증이므로 특정 필드 대신 "root" 속성에 오류가 기록됩니다. 복잡한 객체 구조에서는 각 필드별로 오류 메시지가 해당 필드의 경로에 매핑되어 표시됩니다.
+# CRES
+
+common-resolver는 각 에러 객체를 우선적으로 CEF(Common ErrorObject Format)으로 변환합니다. 이를 통해 다양한 형태의 에러 객체를 일관된 구조로 통합한 뒤, 최종적으로 사용자가 쓰기 편한 CRES(Common-Resolver ErrorObject Structure)로 변환하는 과정을 하나의 흐름으로 구성할 수 있습니다. 이러한 형식 변환기는 각 resolver 내부에 정의되어있으며, CEF는 아래와 같이 { [path: string]: string }의 형태를 갖게 됩니다.
+```ts
+const CEF = {
+  agreeToTerms: "모든 약관에 동의해야 합니다",
+  agreeToTerms.marketingTerms: "마케팅 수신 동의에 동의해야 합니다",
+  email: "이메일 형식이 아닙니다",
+  root: '비밀번호가 일치하지 않습니다'
+}
+```
+
+CRES는 common-resolver가 제공하는 관된 에러 응답 형식으로, 다양한 출처에서 발생하는 에러들을 표준화하여 처리할 수 있도록 설계되었습니다. 이를 통해 개발자는 각기 다른 서비스나 라이브러리에서 반환하는 복잡한 에러 객체를 일일이 해석하지 않고도, CRES를 기반으로 한 통합된 방식으로 에러를 관리하고 사용자에게 일관성 있는 피드백을 제공할 수 있습니다. 가령 아래와 같은 값과, 그 값을 검증하기 위한 스키마가 있다고 할 때
 
 ```ts
-const zSchema = z.string({ message: "string이어야 합니다" }).min(1, "zSchema는 필수입니다");
-
-zodResolver(zSchema).validate("").error // {root: "zSchema는 필수입니다"}
+const value = {
+  email: "test",
+  nickname: "test",
+  password: "test1234!",
+  passwordCheck: "test1234",
+  agreeToTerms: {
+    theTerms: true,
+    personalTerms: true,
+    marketingTerms: false,
+  },
+}
+ 
+const zSchema = z.object({
+  email: z.string().email("이메일 형식이 아닙니다").min(1, "이메일은 필수입니다"),
+  nickname: z.string().min(1, "닉네임은 필수입니다"),
+  password: z.string().min(1, "비밀번호는 필수입니다"),
+  passwordCheck: z.string().min(1, "비밀번호 확인은 필수입니다"),
+  agreeToTerms: z.object(
+    {
+      theTerms: z.boolean().refine(val => val, { message: "이용약관에 동의해야 합니다" }),
+      personalTerms: z.boolean().refine(val => val, { message: "개인정보 수집 및 이용에 동의해야 합니다" }),
+      marketingTerms: z.boolean().refine(val => val, { message: "마케팅 수신 동의에 동의해야 합니다" }),
+    }
+  ).refine(val => val.theTerms && val.personalTerms && val.marketingTerms, { message: "모든 약관에 동의해야 합니다" }),
+}).refine(data => {
+  if (data.password !== data.passwordCheck) {
+    return false;
+  }
+  return true;
+}, "비밀번호가 일치하지 않습니다")
 ```
+
+CRES는 아래와 같이 형성됩니다. 여기서 각 에러 항목에 포함된 root는 객체나 배열 그 자체에 대한 에러를 의미합니다. 만약 root 없이 이를 처리할 경우, agreeToTerms.marketingTerms와 같이 객체가 중첩되는 상황에서 최상위 객체(agreeToTerms)에 대한 에러 메시지를 표현하기 어렵습니다. 따라서 root 필드는 특정 하위 속성뿐 아니라 해당 객체 전체에 관련된 일반적인 에러를 명확하게 전달할 수 있는 역할을 하며, 이를 통해 에러 처리 로직이 보다 일관성 있고 유연해집니다. 이 구조는 중첩된 데이터 구조에서도 각 수준별로 적절한 에러 메시지를 제공하여 사용자 경험을 개선하는 데 큰 도움이 됩니다.
+
+```ts
+const CRES = {
+  agreeToTerms: {
+    marketingTerms: { root: '마케팅 수신 동의에 동의해야 합니다' },
+    root: '모든 약관에 동의해야 합니다'
+  },
+  email: { root: '이메일 형식이 아닙니다' },
+  root: '비밀번호가 일치하지 않습니다'
+}
+```
+
+common-resolver는 CRES를 Proxy 객체로 감싸서 제공합니다. 이 Proxy 객체가 하는 일은 몇 가지가 있는데, 우선 에러 메시지에 접근할 때 자동으로 해당 경로의 root 값을 반환하거나, 하위 객체가 있다면 다시 Proxy로 감싸 재귀적으로 접근할 수 있도록 합니다. 이를 통해 개발자는 복잡한 중첩 구조를 일일이 확인하지 않고도 간편하게 에러 메시지에 접근할 수 있으며, 직접 root를 명시하지 않아도 항상 적절한 기본 메시지를 얻을 수 있습니다. 또한, 이 Proxy는 에러 객체의 속성을 변경하거나 삭제하려는 시도를 차단하여, 에러 메시지의 불변성을 보장함으로써 안정적인 에러 처리 환경을 제공합니다.
+
+
+```ts
+type CRES<T> = RecursivePartial<T> & { "root"?: string };
+ 
+export type RecursivePartial<T> = {
+  [P in keyof T]?: T[P] extends object
+    ? RecursivePartial<T[P]>
+    : string;
+};
+```
+CRES의 타입 정의를 다시 살펴보면, 최상단에만 root가 선택적으로 존재하고, 그 외 하위 객체들에는 root가 없는 것처럼 취급됩니다. 최상위 레벨에서는 root가 있을 수 있으나, 하위 레벨에서는 root가 별도로 존재하지 않는 구조를 타입 시스템 상에서 명확히 표현함으로써, 실제 사용 시 root 값을 붙이는 번거로움을 줄이고 타입 안정성을 높일 수 있습니다. 문제는 root에 접근하고 싶을 때 조차 타입스크립트는 이를 string이 아닌 객체로 인식한다는 점입니다. 다소 아쉬운 부분이지만, 이는 일정 부분 의도된 동작입니다.
+
+![](https://img1.daumcdn.net/thumb/R1600x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FNlwoZ%2FbtsN174ybvR%2FdTXVIhSLKyGXD6VADG13mk%2Fimg.png)
+
+RecursivePartial 타입을 아래와 같이 수정한다고 가정해보겠습니다. 이 경우 점 표기법 등으로 깊숙한 위치의 프로퍼티에 접근할 때, 각 단계에서 해당 값이 string이 아닌 object인지 매번 확인해야 합니다. 그렇지 않으면 모든 프로퍼티 접근 시 타입 에러가 발생하게 됩니다. 따라서 root 값에 접근하는 경우에 대해 실제 타입을 그대로 반영하기보다는 그때그때 as string으로 단언해버리는 편이 훨씬 덜 번거롭다고 판단했습니다.
+
+```ts
+export type RecursivePartial<T> = {
+  [P in keyof T]?: T[P] extends object
+    ? RecursivePartial<T[P]> | string
+    : string;
+};
+```
+
+![](https://img1.daumcdn.net/thumb/R1600x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FdcXsNR%2FbtsN1m2s0qr%2FIsjkn9Q0pzKqxwkWCtPUoK%2Fimg.png)
+
 
 # 사용 예시
 
@@ -68,6 +151,15 @@ import { superstructResolver, isSuperStructSchema } from "common-resolver/supers
 import { getResolver } from "common-resolver/getResolver"
 import { ValidateSchema, Resolver } "common-resolver/types"
 ```
+
+다음은 Zod 스키마를 사용하는 간단한 예제입니다. 여기서는 문자열 타입의 스키마를 정의하고 최소 길이가 1 이상이어야 한다는 제약을 설정했습니다. 빈 문자열("")을 validate 메서드에 전달하면 길이 조건을 충족하지 못해 유효성 검사에 실패합니다. 이때 반환되는 error 객체에는 "root" 속성에 오류 메시지("zSchema는 필수입니다")가 포함됩니다. 이 예제는 단일 값에 대한 검증이므로 특정 필드 대신 "root" 속성에 오류가 기록됩니다. 복잡한 객체 구조에서는 각 필드별로 오류 메시지가 해당 필드의 경로에 매핑되어 표시됩니다.
+
+```ts
+const zSchema = z.string({ message: "string이어야 합니다" }).min(1, "zSchema는 필수입니다");
+
+zodResolver(zSchema).validate("").error // {root: "zSchema는 필수입니다"}
+```
+
 
 ## 전역 상태 관리 라이브러리 Caro-Kann 에서의 common-resolver
 
