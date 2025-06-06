@@ -28,8 +28,8 @@
       "types": "./dist/exports/utils.d.ts"
     },
     "./types": {
-      "import": "./dist/exports/types.js",
-      "types": "./dist/exports/types.d.ts"
+      "import": "./dist/types/index.js",
+      "types": "./dist/types/index.d.ts"
     }
   },
   "sideEffects": false,

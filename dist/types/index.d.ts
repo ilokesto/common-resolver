@@ -1,4 +1,4 @@
-export type RecursivePartial<T> = {
+type RecursivePartial<T> = {
     [P in keyof T]?: T[P] extends object ? RecursivePartial<T[P]> : string;
 };
 type CRES<T> = RecursivePartial<T> & {
