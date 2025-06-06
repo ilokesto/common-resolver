@@ -1,2 +1,2 @@
-import { Resolver } from "../types";
+import type { Resolver } from "../types";
 export declare function superstructResolver<T>(schema: import("superstruct").Struct<T, any>): Resolver<T>;

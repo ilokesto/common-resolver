@@ -1,4 +1,4 @@
-import { Resolver } from "../types";
+import type { Resolver } from "../types";
 import { createErrorProxy, errorPathObjectify } from "../utils";
 
 export function superstructResolver<T>(schema: import("superstruct").Struct<T, any>): Resolver<T> {

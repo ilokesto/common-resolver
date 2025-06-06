@@ -1,4 +1,4 @@
-import { Resolver } from "../types";
+import type { Resolver } from "../types";
 import { bracketIndexToDot, createErrorProxy, errorPathObjectify } from "../utils";
 
 export function yupResolver<T>(schema: import("yup").Schema<T>): Resolver<T> {
