@@ -1,3 +1,3 @@
-export * from '../ss/isSuperstructSchema'
-export * from '../ss/ssParser'
-export * from '../ss/ssResolver'
+export * from '../superstruct/isSuperstructSchema'
+export * from '../superstruct/superstructParser'
+export * from '../superstruct/superstructResolver'

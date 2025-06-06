@@ -1,5 +1,5 @@
-import { isSuperstructSchema } from "../ss/isSuperstructSchema";
-import { superstructResolver } from "../ss/ssResolver";
+import { isSuperstructSchema } from "../superstruct/isSuperstructSchema";
+import { superstructResolver } from "../superstruct/superstructResolver";
 import { Resolver } from "../types";
 import { isYupSchema } from "../yup/isYupSchema";
 import { yupResolver } from "../yup/yupResolver";

@@ -1,3 +1,3 @@
-export * from '../zod/isZodSchema';
-export * from '../zod/zodParser';
-export * from '../zod/zodResolver';
+export * from '../yup/isYupSchema';
+export * from '../yup/yupParser';
+export * from '../yup/yupResolver';
