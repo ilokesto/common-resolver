@@ -1,13 +1,9 @@
-import { z } from "zod";
-import * as yup from "yup";
-import { Struct } from "superstruct";
-
 export type ValidateSchema<T> = {
-  zod: z.ZodSchema<T>;
-  yup: yup.Schema<T>;
-  superstruct: Struct<T, any>;
+  zod: import("zod").ZodSchema<T>;
+  yup: import("yup").Schema<T>;
+  superstruct: import("superstruct").Struct<T, any>;
 }
-
+  
 export type RecursivePartial<T> = {
   [P in keyof T]?: T[P] extends object
     ? RecursivePartial<T[P]>
