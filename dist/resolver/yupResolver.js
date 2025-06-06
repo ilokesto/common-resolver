@@ -13,12 +13,14 @@ export function yupResolver(schema) {
                 return {
                     valid: true,
                     error: null,
+                    data: state
                 };
             }
             catch (e) {
                 return {
                     valid: false,
-                    error: createErrorProxy(errorPathObjectify(formatter(e.inner)))
+                    error: createErrorProxy(errorPathObjectify(formatter(e.inner))),
+                    data: null
                 };
             }
         }

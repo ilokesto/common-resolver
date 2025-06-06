@@ -14,12 +14,14 @@ export function superstructResolver(schema) {
                 return {
                     valid: true,
                     error: null,
+                    data: state
                 };
             }
             else {
                 return {
                     valid: false,
                     error: createErrorProxy(errorPathObjectify(formatter(error.failures()))),
+                    data: null
                 };
             }
         }

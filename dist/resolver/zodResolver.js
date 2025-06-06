@@ -13,12 +13,14 @@ export function zodResolver(schema) {
                 return {
                     valid: true,
                     error: null,
+                    data: state
                 };
             }
             else {
                 return {
                     valid: false,
                     error: createErrorProxy(errorPathObjectify(formatter(result.error.issues))),
+                    data: null
                 };
             }
         }
