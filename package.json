@@ -12,20 +12,20 @@
   "module": "dist/index.js",
   "exports": {
     "./zod": {
-      "import": "./dist/exports/zodResolver.js",
-      "types": "./dist/exports/zodResolver.d.ts"
+      "import": "./dist/exports/zod.js",
+      "types": "./dist/exports/zod.d.ts"
     },
     "./yup": {
-      "import": "./dist/exports/yupResolver.js",
-      "types": "./dist/exports/yupResolver.d.ts"
+      "import": "./dist/exports/yup.js",
+      "types": "./dist/exports/yup.d.ts"
     },
     "./superstruct": {
-      "import": "./dist/exports/ssResolver.js",
-      "types": "./dist/exports/ssResolver.d.ts"
+      "import": "./dist/exports/superstruct.js",
+      "types": "./dist/exports/superstruct.d.ts"
     },
-    "./getResolver": {
-      "import": "./dist/exports/getResolver.js",
-      "types": "./dist/exports/getResolver.d.ts"
+    "./utils": {
+      "import": "./dist/exports/utils.js",
+      "types": "./dist/exports/utils.d.ts"
     },
     "./types": {
       "import": "./dist/exports/types.js",
@@ -44,17 +44,6 @@
     "yup": "^1.0.0",
     "superstruct": "^2.0.0"
   },
-  "peerDependenciesMeta": {
-    "zod": {
-      "optional": true
-    },
-    "yup": {
-      "optional": true
-    },
-    "superstruct": {
-      "optional": true
-    }
-  },
   "devDependencies": {
     "@types/node": "^22.9.0",
     "@types/react": "^18.3.12",
@@ -65,6 +54,9 @@
     "eslint-plugin-react": "^7.34.1",
     "typescript": "^5.4.5",
     "vite": "^5.2.10",
-    "vite-plugin-compression": "^0.5.1"
+    "vite-plugin-compression": "^0.5.1",
+    "zod": "^3.0.0",
+    "yup": "^1.0.0",
+    "superstruct": "^2.0.0"
   }
 }
