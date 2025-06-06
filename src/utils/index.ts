@@ -4,6 +4,7 @@ export function bracketIndexToDot(path: string): string {
   if (newPath.startsWith('.')) newPath = newPath.slice(1);
   return newPath;
 }
+
 export function errorPathObjectify(errors: Record<string, string>): Record<string, any> {
   const result: Record<string, any> = {};
   

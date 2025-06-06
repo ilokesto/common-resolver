@@ -19,11 +19,13 @@ export function superstructResolver<T>(schema: ValidateSchema<T>["superstruct"])
         return {
           valid: true,
           error: null,
+          data: state
         };
       } else {
         return {
           valid: false,
           error: createErrorProxy(errorPathObjectify(formatter(error.failures()))),
+          data: null
         }
       }
     }

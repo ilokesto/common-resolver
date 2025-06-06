@@ -16,11 +16,13 @@ export function zodResolver<T>(schema: ValidateSchema<T>["zod"]): Resolver<T> {
         return {
           valid: true,
           error: null,
+          data: state
         };
       } else {
         return {
           valid: false,
           error: createErrorProxy(errorPathObjectify(formatter(result.error.issues))),
+          data: null
         };
       }
     }

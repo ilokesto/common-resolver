@@ -32,9 +32,11 @@ export type Resolver<T> = {
   validate: (state: T, name?: string) => {
     valid: true;
     error: null;
+    data: T;
   } | {
     valid: false;
     error: CRES<T>;
+    data: null;
   };
 }
 ```

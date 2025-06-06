@@ -16,11 +16,13 @@ export function yupResolver<T>(schema: ValidateSchema<T>["yup"]): Resolver<T> {
           return {
             valid: true,
             error: null,
+            data: state
           }
         } catch (e: any) {
           return {
             valid: false,
-            error: createErrorProxy(errorPathObjectify(formatter(e.inner)))
+            error: createErrorProxy(errorPathObjectify(formatter(e.inner))),
+            data: null
           }
         }
       }
