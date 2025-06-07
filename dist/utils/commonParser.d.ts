@@ -1,3 +1,4 @@
-export declare function commonParser<T>(data: T, schema: any, resolver: any, options?: {
+import { Resolver } from "../types";
+export declare function commonParser<T, K>(data: T, schema: K, resolver: (schema: K) => Resolver<T>, options?: {
     throwError: boolean;
 }): T;
