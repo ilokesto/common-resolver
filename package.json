@@ -1,6 +1,6 @@
 {
-  "name": "common-resolver",
-  "version": "1.0.1",
+  "name": "@ilokesto/common-resolver",
+  "version": "1.0.0",
   "scripts": {
     "build": "tsc"
   },
