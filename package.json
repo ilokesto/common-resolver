@@ -1,12 +1,12 @@
 {
   "name": "@ilokesto/common-resolver",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scripts": {
     "build": "tsc"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ayden94/common-resolver"
+    "url": "git+https://github.com/ilokesto/common-resolver"
   },
   "types": "dist/index.d.ts",
   "module": "dist/index.js",
@@ -36,6 +36,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [],
   "author": "Jeong Jinho <wpfekdml@me.com>",
   "license": "MIT",
