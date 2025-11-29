@@ -43,9 +43,9 @@
   "author": "Jeong Jinho <wpfekdml@me.com>",
   "license": "MIT",
   "peerDependencies": {
-    "zod": "^3.0.0",
+    "superstruct": "^2.0.0",
     "yup": "^1.0.0",
-    "superstruct": "^2.0.0"
+    "zod": "^3.0.0 || ^4.0.0"
   },
   "peerDependenciesMeta": {
     "zod": {
@@ -62,9 +62,9 @@
     "@types/node": "^22.9.0",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.1",
+    "superstruct": "^2.0.0",
     "typescript": "^5.4.5",
-    "zod": "^3.0.0",
     "yup": "^1.0.0",
-    "superstruct": "^2.0.0"
+    "zod": "^3.25.76"
   }
 }

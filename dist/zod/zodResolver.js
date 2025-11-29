@@ -2,7 +2,8 @@ import { createErrorProxy, errorPathObjectify } from "../utils";
 export function zodResolver(schema) {
     const formatter = (obj) => {
         return obj.reduce((acc, { message, path }) => {
-            acc[path.join('.') || "root"] = message;
+            const stringPath = path.filter((p) => typeof p !== 'symbol');
+            acc[stringPath.join('.') || "root"] = message;
             return acc;
         }, {});
     };
